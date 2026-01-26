@@ -31,3 +31,9 @@ model Post {
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  Int?
 }
+
+model Otro {
+  id    Int     @default(autoincrement()) @id
+  email String  @unique
+  name  String?
+}

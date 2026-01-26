@@ -413,11 +413,71 @@ Porque Prisma **no piensa en migrations como scripts independientes**, sino como
 
 ### Opción A – La forma Prisma (recomendada)
 
-1. Cambias `schema.prisma`
+1. Cambias `schema.prisma`, por ejemplo:
+```
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat    = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+model User {
+  id    Int     @default(autoincrement()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        Int      @default(autoincrement()) @id
+  title     String
+  content   String?
+  published Boolean? @default(false)
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  Int?
+}
+
+model Otro {
+  id    Int     @default(autoincrement()) @id
+  email String  @unique
+  name  String?
+}
+```
 2. Ejecutas:
 
 ```bash
-yarn prisma migrate dev --name add_users
+yarn prisma migrate dev --name add_otro
+```
+Que generaría una salida como:
+```bash
+usuario@Mac hello-prisma % yarn prisma migrate dev --name add_otro
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "ejemploPrisma", schema "public" at "localhost:5432"
+
+Applying migration `20260126164835_add_otro`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma/migrations/
+  └─ 20260126164835_add_otro/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
 ```
 
 Prisma:
