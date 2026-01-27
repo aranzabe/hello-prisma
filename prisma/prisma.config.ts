@@ -1,15 +1,3 @@
-// import { defineConfig } from '@prisma/config';
-
-// export default defineConfig({
-//   datasource: {
-//     url: process.env.DATABASE_URL,
-//   },
-//   migrations: {
-//     // Definimos el comando que ejecutará el seeder
-//     seed: 'tsx prisma/seed.ts',
-//   },
-// });
-
 import 'dotenv/config'
 import { defineConfig, env } from "prisma/config";
 
@@ -27,3 +15,4 @@ export default defineConfig({
 //https://www.prisma.io/docs/orm/reference/prisma-config-reference
 //https://www.prisma.io/docs/orm/reference/prisma-client-reference
 //https://www.prisma.io/docs/orm/prisma-migrate/workflows/seeding
+//https://www.prisma.io/docs/orm/prisma-schema/data-model/relations
