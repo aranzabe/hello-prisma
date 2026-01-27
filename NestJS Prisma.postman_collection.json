@@ -25,6 +25,24 @@
       "response": []
     },
     {
+      "name": "get POSTS",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "localhost:3000/users",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "get id USER",
       "request": {
         "method": "GET",
