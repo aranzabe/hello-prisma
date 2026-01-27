@@ -767,3 +767,191 @@ Eso es **a propósito**:
 
 > **En Prisma las relaciones no se programan, se describen.**
 
+
+---
+
+# 💾 Prisma 7 + Node 24 + Seeders con CJS + Yarn
+
+## 1️⃣ Estructura del proyecto relevante
+
+```
+hello-prisma/
+├─ package.json
+├─ prisma/
+│  ├─ schema.prisma
+│  ├─ seed.cjs           <-- script principal de seeders
+│  └─ seeds/
+│     ├─ users.seed.cjs
+│     └─ posts.seed.cjs
+├─ src/
+│  └─ main.ts (o index.ts)
+└─ generated/
+   └─ prisma/            <-- Prisma Client generado
+```
+
+---
+
+## 2️⃣ Configuración de `package.json`
+
+```json
+{
+  "name": "hello-prisma",
+  "version": "1.0.0",
+  "type": "commonjs",           // importante para usar .cjs
+  "scripts": {
+    "start": "node dist/main.js",                // producción
+    "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/main.ts",  // desarrollo
+    "build": "tsc",                              // build TypeScript
+    "seed": "node prisma/seed.cjs",             // lanzar seeders
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.3.0",
+    "dotenv": "^16.0.0",
+    "pg": "^8.11.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.3",
+    "nodemon": "^3.0.2"
+  }
+}
+```
+
+**✅ Claves:**
+
+* `"type": "commonjs"` permite usar `.cjs` para los seeders.
+* `seed` apunta al archivo principal `prisma/seed.cjs`.
+* `start:dev` usa `nodemon + ts-node` para desarrollo.
+* Prisma scripts separados por claridad.
+
+---
+
+## 3️⃣ Seeders en CJS
+
+### 3.1 `prisma/seeds/users.seed.cjs`
+
+```js
+async function seedUsers(prisma) {
+  console.log('🌱 Seeding users...');
+  await prisma.user.createMany({
+    data: [
+      { email: 'admin@test.com', name: 'Admin' },
+      { email: 'user1@test.com', name: 'User One' },
+      { email: 'user2@test.com', name: 'User Two' },
+    ],
+    skipDuplicates: true
+  });
+  console.log('✅ Users seeded');
+}
+
+module.exports = { seedUsers };
+```
+
+### 3.2 `prisma/seeds/posts.seed.cjs`
+
+```js
+async function seedPosts(prisma) {
+  console.log('🌱 Seeding posts...');
+
+  const users = await prisma.user.findMany();
+  if (!users.length) {
+    console.warn('⚠️ No users found. Skipping posts seed.');
+    return;
+  }
+
+  const postsData = users.flatMap(user => [
+    {
+      title: `Welcome post for ${user.name ?? user.email}`,
+      content: 'This is an auto-generated welcome post.',
+      published: true,
+      authorId: user.id
+    },
+    {
+      title: `Draft post for ${user.name ?? user.email}`,
+      content: null,
+      published: false,
+      authorId: user.id
+    }
+  ]);
+
+  await prisma.post.createMany({
+    data: postsData,
+    skipDuplicates: true
+  });
+
+  console.log('✅ Posts seeded');
+}
+
+module.exports = { seedPosts };
+```
+
+### 3.3 `prisma/seed.cjs` (script principal de seeders)
+
+```js
+require('dotenv/config');
+const { PrismaClient } = require('@prisma/client');
+const { PrismaPg } = require('@prisma/adapter-pg');
+const { seedUsers } = require('./seeds/users.seed.cjs');
+const { seedPosts } = require('./seeds/posts.seed.cjs');
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({
+    connectionString: process.env.DATABASE_URL || "postgresql://postgres:Chubaca2025@localhost:5432/ejemploPrisma?schema=public"
+  }),
+});
+
+async function main() {
+  console.log('🌱 Starting database seed...');
+  await seedUsers(prisma);
+  await seedPosts(prisma);
+  console.log('🌱 Database seed completed');
+}
+
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());
+```
+
+**✅ Clave:**
+
+* Se usa **PrismaPg** adapter para Prisma 7, ya que en Prisma 7 el `PrismaClient()` no acepta argumentos vacíos ni `datasources`.
+
+---
+
+## 4️⃣ Comandos Yarn
+
+| Acción                     | Comando Yarn               |
+| -------------------------- | -------------------------- |
+| Generar Prisma Client      | `yarn prisma:generate`     |
+| Crear/ejecutar migraciones | `yarn prisma:migrate`      |
+| Resetear DB (development)  | `yarn prisma migrate reset` |
+| Lanzar seeders             | `yarn seed`                |
+| Arrancar servidor (dev)    | `yarn start:dev`           |
+| Arrancar servidor (prod)   | `yarn start`               |
+| Compilar TypeScript        | `yarn build`               |
+
+---
+
+## 5️⃣ Notas importantes
+
+1. **Extensión `.cjs` para seeders**:
+
+   * Prisma 7 + Node ESM/CJS causa errores si intentas usar `.ts` o `.mjs`.
+   * `.cjs` + `require()` funciona perfectamente para Node 24.
+
+2. **No usar `new PrismaClient()` vacío en Prisma 7**:
+
+   * Debes usar `PrismaPg` adapter con la `connectionString`.
+
+3. **Yarn**:
+
+   * Funciona para todo (`yarn seed`, `yarn start:dev`, migraciones).
+   * No mezclamos npm y yarn, todo coherente en Yarn.
+
+4. **Migraciones**:
+
+   * Si la base de datos y la carpeta `migrations` divergen, Prisma sugiere `prisma migrate reset`.
+   * Esto borra datos, así que solo usar en development.
+
