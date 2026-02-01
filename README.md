@@ -59,6 +59,8 @@ export class AppModule {}
 ```bash
 yarn add prisma
 yarn prisma init
+yarn add @prisma/client 
+yarn add @prisma/adapter-pg
 ```
 
 * Esto genera:
@@ -145,6 +147,11 @@ yarn prisma migrate dev --name init
 ---
 
 ## **7 Generar PrismaService y PrismaModule**
+
+```
+nest g service prisma
+nest g module prisma 
+```
 
 ```ts
 // src/prisma/prisma.service.ts
@@ -924,8 +931,8 @@ main()
 
 | Acción                     | Comando Yarn               |
 | -------------------------- | -------------------------- |
-| Generar Prisma Client      | `yarn prisma:generate`     |
-| Crear/ejecutar migraciones | `yarn prisma:migrate`      |
+| Generar Prisma Client      | `yarn prisma generate`     |
+| Crear/ejecutar migraciones | `yarn prisma migrate`      |
 | Resetear DB (development)  | `yarn prisma migrate reset` |
 | Lanzar seeders             | `yarn seed`                |
 | Arrancar servidor (dev)    | `yarn start:dev`           |

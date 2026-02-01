@@ -23,6 +23,7 @@ async function seedPosts(prisma) {
     },
   ]);
 
+  //Para tablas intermedias NO recomiendo createMany.
   await prisma.post.createMany({
     data: postsData,
     skipDuplicates: true,

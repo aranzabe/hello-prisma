@@ -392,7 +392,7 @@ yarn add -D ts-node
 ### 👉 Manual (local o Docker)
 
 ```bash
-yarn prisma db seed
+yarn seed
 ```
 
 ---
@@ -401,7 +401,7 @@ yarn prisma db seed
 
 ```bash
 yarn prisma migrate dev
-yarn prisma db seed
+yarn seed
 ```
 
 ---
@@ -447,3 +447,37 @@ SEED_USERS=true yarn prisma db seed
 * ❌ No `up/down`
 * ❌ No versionados
 
+
+---
+
+## Posibles fallos.
+
+Si te da fallos como:
+```
+node:internal/modules/cjs/loader:1424
+  throw err;
+  ^
+
+Error: Cannot find module '.prisma/client/default'
+Require stack:
+````
+
+Prueba a:
+Limpieza Profunda (Obligatorio)
+Node v24 y Prisma 7 guardan mucha caché de motores. Ejecuta estos comandos en orden:
+
+Borra instalaciones y archivos generados:
+```
+rm -rf node_modules
+rm -rf generated
+rm -rf .yarn/cache
+```
+Reinstalamos:
+```
+yarn install
+````
+
+Generamos el cliente:
+```
+yarn prisma generate
+````
