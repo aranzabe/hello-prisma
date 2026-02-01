@@ -472,6 +472,15 @@ rm -rf node_modules
 rm -rf generated
 rm -rf .yarn/cache
 ```
+Ponemos:
+```
+generator client {
+  provider      = "prisma-client-js".  <--- Esto es importante,  agregar   -js>
+  output        = "../generated/prisma"
+  moduleFormat  = "cjs"
+}
+```
+
 Reinstalamos:
 ```
 yarn install
@@ -481,3 +490,26 @@ Generamos el cliente:
 ```
 yarn prisma generate
 ````
+Ahora funcionan los seeders usando el script.
+
+Elimina todo de nuevo:
+```
+rm -rf node_modules
+rm -rf generated
+rm -rf .yarn/cache
+```
+
+Vuelve a dejar el archivo **schema.prisma** como:
+````
+generator client {
+  provider      = "prisma-client".  <--- Quita esto, es importante,  quitar   -js>
+  output        = "../generated/prisma"
+  moduleFormat  = "cjs"
+}
+```
+Y vuelve a regenerar:
+```
+yarn install
+yarn prisma generate
+````
+Ahora vuelve a funcionar el servicio.
