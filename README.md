@@ -194,6 +194,11 @@ Esto crea:
 * `users/users.module.ts`, `users/users.service.ts`, `users/users.controller.ts`
 * `posts/posts.module.ts`, `posts/posts.service.ts`, `posts/posts.controller.ts`
 
+Instalamos también los validators:
+```
+yarn add class-validator class-transformer
+```
+
 ---
 
 ## **9 UsersService usando Prisma**
