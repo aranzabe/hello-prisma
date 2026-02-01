@@ -374,16 +374,12 @@ Añade esto:
 ```json
 {
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "node prisma/seeds/seed.cjs",
   }
 }
 ```
 
-Instala `ts-node` si no lo tienes:
 
-```bash
-yarn add -D ts-node
-```
 
 ---
 
@@ -513,3 +509,78 @@ yarn install
 yarn prisma generate
 ````
 Ahora vuelve a funcionar el servicio.
+
+Lo más elegante puede ser, si te da mucha gueerra, poner el siguiente schema.prisma:
+````
+generator client {
+  provider      = "prisma-client"
+  output        = "../generated/prisma"
+  moduleFormat  = "cjs"
+}
+
+generator client2 {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma2"
+  moduleFormat  = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+  // no poner url aquí en Prisma 7
+}
+
+model User {
+  id    Int     @default(autoincrement()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        Int      @default(autoincrement()) @id
+  title     String
+  content   String?
+  published Boolean? @default(false)
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  Int?
+}
+````
+
+Genera dos carpetas prisma: prisma y prisma2; la primera se usa en el servicio y la otra solo para los seeders:
+```typescript
+// require('dotenv/config');
+// const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require('../../generated/prisma2');  //<---- AQUI importamos prisma2>
+const { PrismaPg } = require('@prisma/adapter-pg');
+
+const { seedUsers } = require('./users.seed.cjs');
+const { seedPosts } = require('./posts.seed.cjs');
+const { seedRandomPosts } = require('./posts-random.seed.cjs');
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({
+    connectionString: process.env.DATABASE_URL || "postgresql://postgres:Chubaca2025@localhost:5432/hello_prisma-borrar?schema=public"
+  }),
+});
+
+async function main() {
+  console.log('🌱 Starting database seed...');
+
+  await seedUsers(prisma);
+  await seedPosts(prisma);
+
+  // Seed aleatorio extra
+  await seedRandomPosts(prisma, 5); // 5 posts aleatorios por usuario
+
+  console.log('🌱 Database seed completed');
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Seed failed', e);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+
+````
